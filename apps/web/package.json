@@ -1,0 +1,12 @@
+{
+  "name": "@material-register/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@material-register/shared": "*"
+  },
+  "scripts": {
+    "dev": "echo 'web app is added in prompt 07'"
+  }
+}

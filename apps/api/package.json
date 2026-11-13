@@ -1,0 +1,19 @@
+{
+  "name": "@material-register/api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@material-register/shared": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.15",
+    "tsx": "^4.23.15"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  }
+}
