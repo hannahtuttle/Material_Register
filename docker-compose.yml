@@ -11,9 +11,9 @@ services:
     # initialised (empty volume). Changing them later has no effect without
     # `docker compose down -v` to wipe the volume.
     environment:
-      POSTGRES_USER: postgres      # superuser username
-      POSTGRES_PASSWORD: postgres  # superuser password  — local dev only
-      POSTGRES_DB: materials       # default database created on first start
+      POSTGRES_USER: postgres # superuser username
+      POSTGRES_PASSWORD: postgres # superuser password  — local dev only
+      POSTGRES_DB: materials # default database created on first start
 
     # host-port:container-port. The app connects to localhost:5433 on the
     # host; Docker forwards that traffic to port 5432 inside the container.
