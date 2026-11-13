@@ -31,11 +31,11 @@ npm run dev
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start API and web dev servers concurrently |
-| `npm test` | Run Jest tests |
-| `npm run typecheck` | TypeScript type-check all packages |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier write |
-| `npm run format:check` | Prettier check (CI) |
+| Command                | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `npm run dev`          | Start API and web dev servers concurrently |
+| `npm test`             | Run Jest tests                             |
+| `npm run typecheck`    | TypeScript type-check all packages         |
+| `npm run lint`         | ESLint                                     |
+| `npm run format`       | Prettier write                             |
+| `npm run format:check` | Prettier check (CI)                        |

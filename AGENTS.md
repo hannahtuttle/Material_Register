@@ -11,6 +11,9 @@ material-register/
 │   └── web/          # React Router v7 SPA (ESM)
 ├── packages/
 │   └── shared/       # Source-only TS package: enums, Zod schemas
+├── docker/
+│   └── init.sql      # Runs once on first container start (creates materials_test)
+├── docker-compose.yml # Postgres 18 on host port 5433
 └── docs/
     ├── API.md        # tRPC procedure reference
     └── AI_LOG.md     # Per-task AI change log
@@ -18,16 +21,20 @@ material-register/
 
 **Commands** (run from repo root):
 
-| Command                | Does                                        |
-| ---------------------- | ------------------------------------------- |
-| `npm run dev`          | Starts API and web concurrently             |
-| `npm test`             | Runs Jest in every workspace that has tests |
-| `npm run lint`         | ESLint across the whole monorepo            |
-| `npm run typecheck`    | `tsc --noEmit` in every workspace           |
-| `npm run format`       | Prettier write                              |
-| `npm run format:check` | Prettier check (CI)                         |
+| Command                  | Does                                        |
+| ------------------------ | ------------------------------------------- |
+| `npm run dev`            | Starts API and web concurrently             |
+| `npm test`               | Runs Jest in every workspace that has tests |
+| `npm run lint`           | ESLint across the whole monorepo            |
+| `npm run typecheck`      | `tsc --noEmit` in every workspace           |
+| `npm run format`         | Prettier write                              |
+| `npm run format:check`   | Prettier check (CI)                         |
+| `docker compose up -d`   | Start Postgres in the background            |
+| `docker compose down -v` | Stop Postgres and wipe the data volume      |
 
 > `db:setup` (Drizzle migrations) arrives in prompt 04.
+>
+> **Port note:** host port is `5433` (not `5432`) because a local Postgres was already on 5432. All connection strings use `localhost:5433`.
 
 ---
 
@@ -68,7 +75,22 @@ Any change to a procedure's input or output updates `docs/API.md` in the same ch
 
 Generic messages to the client, full detail in server logs. Every request and error carries a request ID.
 
-### 8. Module format
+### 8. Docker
+
+Docker runs Postgres only. Do not containerise `apps/api` or `apps/web` unless explicitly asked.
+
+### 9. Schema changes (Drizzle)
+
+1. Edit `apps/api/src/db/schema.ts`.
+2. Run `npm run db:generate -w apps/api` and review the generated SQL.
+3. Run `npm run db:migrate -w apps/api` to apply.
+4. Commit the generated migration files alongside the schema change.
+
+Never use `drizzle-kit push` (it mutates the database without a migration file). Never hand-edit files inside `src/db/migrations/` **except** to rename: after `db:generate`, always rename the generated file from drizzle-kit's random name (e.g. `0000_bouncy_giant_girl.sql`) to a descriptive one (e.g. `0000_initial_schema.sql`) and update the matching `tag` in `meta/_journal.json`. The database tracks migrations by SQL hash, not filename, so renames are safe.
+
+`numeric` columns stay in string mode (Drizzle default). Format them on the front end — do not add `mode: 'number'`.
+
+### 10. Module format
 
 - `apps/api` — CommonJS (no `"type": "module"`).
 - `apps/web` — ESM (`"type": "module"`).
@@ -76,18 +98,18 @@ Generic messages to the client, full detail in server logs. Every request and er
 
 Do not change any of these.
 
-### 9. TypeScript
+### 11. TypeScript
 
 Strict mode throughout. No `any` without an inline comment explaining why.
 
-### 10. AI log
+### 12. AI log
 
 After every task, append an entry to `docs/AI_LOG.md`: prompt file name, what was asked, files changed, decisions made. The developer adds their own corrections below each entry.
 
-### 11. Never commit
+### 13. Never commit
 
 The developer reviews the diff and commits. Do not run `git commit` or `git push`.
 
-### 12. Definition of done
+### 14. Definition of done
 
 `npm run typecheck`, `npm run lint`, and `npm test` all pass. `docs/API.md` and `docs/AI_LOG.md` are updated. Finish with a summary of what changed and what to review closely.

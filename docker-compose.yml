@@ -1,0 +1,47 @@
+# Official Postgres image, alpine variant (smaller footprint). Pinned to major
+# version 18 so a future patch update (18.x) is automatic but a major-version
+# upgrade (19) requires a deliberate change here.
+# NOTE: host port is 5433 (not 5432) because a local Postgres is already
+# listening on 5432. DATABASE_URL / TEST_DATABASE_URL use port 5433.
+services:
+  db:
+    image: postgres:18-alpine
+
+    # These variables are only read when the data directory is first
+    # initialised (empty volume). Changing them later has no effect without
+    # `docker compose down -v` to wipe the volume.
+    environment:
+      POSTGRES_USER: postgres # superuser username
+      POSTGRES_PASSWORD: postgres # superuser password  — local dev only
+      POSTGRES_DB: materials # default database created on first start
+
+    # host-port:container-port. The app connects to localhost:5433 on the
+    # host; Docker forwards that traffic to port 5432 inside the container.
+    ports:
+      - '5433:5432'
+
+    volumes:
+      # Named volume for persistent data. Postgres 18 stores data under
+      # /var/lib/postgresql/18/docker, so we mount the parent directory
+      # /var/lib/postgresql to cover it. Mounting /var/lib/postgresql/data
+      # (the pre-18 path) would leave the data directory outside the volume.
+      - pgdata:/var/lib/postgresql
+
+      # Bind mount: SQL files here run once on first start (empty volume).
+      # Mounted read-only as a safety measure.
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Polls until Postgres is ready to accept connections on the materials
+    # database. `start_period` gives the container time to initialise before
+    # failures count toward `retries`.
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d materials']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+# Declares the named volume so Docker manages its lifecycle separately from
+# the container. `docker compose down` leaves it intact; `down -v` removes it.
+volumes:
+  pgdata:

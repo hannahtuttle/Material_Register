@@ -4,3 +4,4 @@ build
 coverage
 .react-router
 package-lock.json
+apps/api/src/db/migrations
