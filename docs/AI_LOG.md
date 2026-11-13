@@ -44,3 +44,25 @@ Each entry records what was asked, what changed, and any decisions made. The dev
 
  Added README.md and added prompts file with initial prompts.
  No other changes needed at this stage.
+
+---
+
+## 2026-11-13 — Prompt 02 (Docker Compose)
+
+**Asked:** Add `docker-compose.yml` to run Postgres 18 locally. Create `docker/init.sql` to initialise `materials_test`. Update `AGENTS.md` with layout and commands.
+
+**Files changed:**
+
+- `docker-compose.yml` — Postgres 18-alpine service with named volume, init-script bind mount, and healthcheck
+- `docker/init.sql` — creates `materials_test` database on first start
+- `.env.example` — port updated from 5432 → 5433 (see decision below)
+- `AGENTS.md` — updated layout, added Docker commands and "Docker runs Postgres only" rule
+
+**Decisions:**
+
+- Host port mapped to `5433` instead of `5432`: a local Postgres process was already listening on 5432; user explicitly chose to remap rather than stop it. All connection strings use `localhost:5433`.
+- `postgres:18-alpine` chosen as the current stable major version. `PGDATA` on this image is `/var/lib/postgresql/18/docker`, so the named volume is mounted at the parent path `/var/lib/postgresql` (not the pre-18 path `/var/lib/postgresql/data`).
+- No `container_name`, `restart` policy, or network config added — keeping compose file minimal as instructed.
+
+**Developer notes:**
+no changes needed at this time
