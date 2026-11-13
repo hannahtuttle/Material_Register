@@ -41,3 +41,6 @@ Each entry records what was asked, what changed, and any decisions made. The dev
 - No `moduleNameMapper` in `jest.config.js`: Jest 30 resolves workspace symlinks to real paths before checking `transformIgnorePatterns`, so `packages/shared/src/index.ts` is correctly transformed by ts-jest without a mapper.
 
 **Developer notes:**
+
+ Added README.md and added prompts file with initial prompts.
+ No other changes needed at this stage.
