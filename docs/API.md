@@ -79,7 +79,7 @@ Omitting `input` entirely applies all field defaults.
     unitOfMeasure: string;
     unitPrice: string; // numeric string — format on the front end
     quantityOnHand: number;
-    updatedAt: Date;
+    updatedAt: string; // ISO 8601 — Date serialised to JSON (no superjson transformer)
     plantCode: string; // joined from plants
     plantName: string;
     manufacturerName: string; // joined from manufacturers
