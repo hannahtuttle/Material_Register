@@ -21,19 +21,18 @@ material-register/
 
 **Commands** (run from repo root):
 
-| Command                  | Does                                        |
-| ------------------------ | ------------------------------------------- |
-| `npm run dev`            | Starts API and web concurrently             |
-| `npm test`               | Runs Jest in every workspace that has tests |
-| `npm run lint`           | ESLint across the whole monorepo            |
-| `npm run typecheck`      | `tsc --noEmit` in every workspace           |
-| `npm run format`         | Prettier write                              |
-| `npm run format:check`   | Prettier check (CI)                         |
-| `docker compose up -d`   | Start Postgres in the background            |
-| `docker compose down -v` | Stop Postgres and wipe the data volume      |
+| Command                  | Does                                           |
+| ------------------------ | ---------------------------------------------- |
+| `npm run dev`            | Starts API and web concurrently                |
+| `npm test`               | Runs Jest in every workspace that has tests    |
+| `npm run lint`           | ESLint across the whole monorepo               |
+| `npm run typecheck`      | `tsc --noEmit` in every workspace              |
+| `npm run format`         | Prettier write                                 |
+| `npm run format:check`   | Prettier check (CI)                            |
+| `docker compose up -d`   | Start Postgres in the background               |
+| `docker compose down -v` | Stop Postgres and wipe the data volume         |
+| `npm run db:setup`       | Migrate + seed `materials` DB (safe to re-run) |
 
-> `db:setup` (Drizzle migrations) arrives in prompt 04.
->
 > **Port note:** host port is `5433` (not `5432`) because a local Postgres was already on 5432. All connection strings use `localhost:5433`.
 
 ---
@@ -90,7 +89,11 @@ Never use `drizzle-kit push` (it mutates the database without a migration file).
 
 `numeric` columns stay in string mode (Drizzle default). Format them on the front end — do not add `mode: 'number'`.
 
-### 10. Module format
+### 10. Seed determinism
+
+The seed uses a fixed mulberry32 PRNG seed (`0xdeadbeef`) and a fixed anchor date (`2026-11-01T00:00:00Z`). Do not use `Math.random()` or `Date.now()` / `new Date()` without arguments anywhere in the seed. Dates must be computed relative to the anchor constant. Any change to either constant will shift every generated record.
+
+### 11. Module format
 
 - `apps/api` — CommonJS (no `"type": "module"`).
 - `apps/web` — ESM (`"type": "module"`).
@@ -98,18 +101,18 @@ Never use `drizzle-kit push` (it mutates the database without a migration file).
 
 Do not change any of these.
 
-### 11. TypeScript
+### 12. TypeScript
 
 Strict mode throughout. No `any` without an inline comment explaining why.
 
-### 12. AI log
+### 13. AI log
 
 After every task, append an entry to `docs/AI_LOG.md`: prompt file name, what was asked, files changed, decisions made. The developer adds their own corrections below each entry.
 
-### 13. Never commit
+### 14. Never commit
 
 The developer reviews the diff and commits. Do not run `git commit` or `git push`.
 
-### 14. Definition of done
+### 15. Definition of done
 
 `npm run typecheck`, `npm run lint`, and `npm test` all pass. `docs/API.md` and `docs/AI_LOG.md` are updated. Finish with a summary of what changed and what to review closely.
