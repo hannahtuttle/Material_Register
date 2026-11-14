@@ -4,10 +4,15 @@
   "private": true,
   "dependencies": {
     "@material-register/shared": "*",
+    "@trpc/server": "^11.28.2",
+    "cors": "^2.8.6",
     "drizzle-orm": "^0.45.4",
+    "express": "^5.3.0",
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
@@ -17,7 +22,7 @@
     "tsx": "^4.23.15"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=../../.env src/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "db:generate": "drizzle-kit generate",
