@@ -172,3 +172,37 @@ no changes needed at this time
 **Decisions:** `%`, `_` and `\` are escaped in the search term so they are treated as literals. `and(...)` from Drizzle skips `undefined` conditions cleanly, so the same `where` clause is passed to both the page query and the count query.
 
 **Developer notes:**
+
+---
+
+## 2026-11-14 — Prompt 07 (Frontend SPA)
+
+**Asked:** Build the full Material Register SPA in `apps/web`: searchable, filterable, sortable, paginated table with all state in the URL. Mantine UI, TanStack Query v5 + Table v8, tRPC v11, React Router v7.
+
+**Files changed:**
+
+- `apps/web/package.json` — full replacement; added React, Mantine, TanStack, tRPC, React Router deps
+- `apps/web/vite.config.ts` — React plugin, `envDir: '../../'`
+- `apps/web/tsconfig.json` — strict, bundler resolution, `jsx: react-jsx`, `types: ["vite/client"]`
+- `apps/web/index.html` — root HTML
+- `apps/web/src/main.tsx` — provider stack: Mantine → QueryClient → tRPC → RouterProvider
+- `apps/web/src/trpc.ts` — `createTRPCContext<AppRouter>()`, `createTRPCClient` with `httpBatchLink`
+- `apps/web/src/format.ts` — `formatPrice`, `formatDate`, `formatNumber`
+- `apps/web/src/hooks/useTableParams.ts` — URL ↔ `MaterialsListInput` bidirectional sync
+- `apps/web/src/routes/MaterialsPage.tsx` — query, loading/error/empty/stale states
+- `apps/web/src/components/Toolbar.tsx` — debounced search, Type/Status selects, Clear all
+- `apps/web/src/components/MaterialsTable.tsx` — TanStack Table with manual sort; skeleton rows
+- `apps/web/src/components/TablePagination.tsx` — Mantine Pagination + page-size Select
+- `apps/api/package.json` — added `"exports": { "./router": "./src/routers/index.ts" }`
+- `.env.example` — added `VITE_API_URL=http://localhost:3001`
+- `AGENTS.md` — added web stack section and web-specific rules
+
+**Decisions:**
+
+- **React Router v7 in declarative SPA mode** (`createBrowserRouter` + `RouterProvider`, no framework mode). Framework mode generates file-based routes and config that's unnecessary for a single-route SPA. Declarative mode is just two API calls.
+- **`updatedAt` typed as `string` on the client.** Drizzle types it as `Date`, but tRPC's default JSON transport serializes it to an ISO string. Without a superjson transformer, the client receives a string. The TypeScript error confirmed this: the inferred type was `string`. `formatDate` accepts `string` and calls `new Date(value)`.
+- **`@trpc/server` as a devDep in `apps/web`.** The web app imports `type AppRouter` from the API, which transitively references `@trpc/server` types. Adding it as a devDep makes TypeScript resolution predictable. No runtime cost (type-only import).
+- **Module-level columns array and `sortableSet` in `MaterialsTable`.** Columns reference only constants and module-level formatters — stable across renders. Defined at module scope rather than inside a `useMemo`.
+- **`eslint-disable-next-line react-hooks/exhaustive-deps`** in `Toolbar`'s debounce effect. `setParams` is intentionally omitted from deps — including it would re-run the effect on every render (since `setParams` is a new closure each render), defeating the 300 ms debounce.
+
+**Developer notes:**

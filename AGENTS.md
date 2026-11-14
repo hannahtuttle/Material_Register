@@ -39,6 +39,36 @@ material-register/
 
 ---
 
+## Web app (`apps/web`)
+
+**Stack:** React 19 · React Router v7 (declarative SPA, `createBrowserRouter`) · Mantine v7 · TanStack Query v5 · TanStack Table v8 · tRPC v11 (`@trpc/tanstack-react-query`, `createTRPCContext` / `useTRPC`)
+
+**Layout:**
+
+```
+apps/web/src/
+├── main.tsx                   # MantineProvider → QueryClientProvider → TRPCProvider → RouterProvider
+├── trpc.ts                    # createTRPCContext<AppRouter>(), trpcClient
+├── format.ts                  # formatPrice, formatDate, formatNumber
+├── hooks/
+│   └── useTableParams.ts      # URL ↔ table state; reads/writes URLSearchParams
+├── routes/
+│   └── MaterialsPage.tsx      # single route (/); orchestrates query, states, components
+└── components/
+    ├── Toolbar.tsx             # search (debounced), Type + Status selects, Clear all
+    ├── MaterialsTable.tsx      # TanStack Table with manual sort; Mantine Table render
+    └── TablePagination.tsx     # Mantine Pagination + page-size Select + count text
+```
+
+**Web-specific rules:**
+
+- **URL is the single source of truth for table state.** `useTableParams` is the only place that reads/writes `URLSearchParams`. Components accept `params` and `setParams` as props; they never touch the URL directly.
+- **Mantine components only.** Use Mantine for all UI elements. No custom CSS unless a Mantine prop cannot achieve the result.
+- **No new state libraries.** Local component state is only for pre-debounce text in `Toolbar`. Everything else lives in the URL.
+- **AppRouter type import.** The web app imports `type { AppRouter }` from `@material-register/api/router` — a type-only import so no server code is bundled. The API's `exports` map exposes `"./router"` for this purpose.
+
+---
+
 ## Rules
 
 ### 1. Walkthrough rule
