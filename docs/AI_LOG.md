@@ -160,3 +160,15 @@ no changes needed at this time
 - **`globals` devDependency** added to root: needed to declare `__dirname`, `process` etc. as valid Node.js globals in the ESLint CJS override for `apps/api/**/*.js`.
 
 **Developer notes:**
+
+---
+
+## 2026-11-14 — Prompt 06 (Search, filters, sort)
+
+**Asked:** Extend `materials.list` with `search`, `materialType`, `status`, `sortBy`, `sortDir`. Add 3 new test cases.
+
+**Files changed:** `packages/shared/src/materials.ts`, `apps/api/src/routers/materials.ts`, `apps/api/tests/materials.test.ts`, `docs/API.md`
+
+**Decisions:** `%`, `_` and `\` are escaped in the search term so they are treated as literals. `and(...)` from Drizzle skips `undefined` conditions cleanly, so the same `where` clause is passed to both the page query and the count query.
+
+**Developer notes:**

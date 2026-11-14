@@ -1,6 +1,17 @@
 import { z } from 'zod';
+import { MATERIAL_STATUSES, MATERIAL_TYPES } from './enums';
 
 export const PAGE_SIZES = [10, 25, 50, 100] as const;
+
+export const SORT_COLUMNS = [
+  'materialNumber',
+  'description',
+  'unitPrice',
+  'quantityOnHand',
+  'updatedAt',
+] as const;
+
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 
 const materialsListInputShape = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -13,6 +24,16 @@ const materialsListInputShape = z.object({
       { message: `pageSize must be one of ${PAGE_SIZES.join(', ')}` },
     )
     .default(25),
+  search: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((v) => (v === '' ? undefined : v)),
+  materialType: z.enum(MATERIAL_TYPES).optional(),
+  status: z.enum(MATERIAL_STATUSES).optional(),
+  sortBy: z.enum(SORT_COLUMNS).default('materialNumber'),
+  sortDir: z.enum(SORT_DIRECTIONS).default('asc'),
 });
 
 // z.preprocess normalises undefined → {} before validation so field-level

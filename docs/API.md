@@ -55,10 +55,15 @@ Omitting `input` entirely applies all field defaults.
 
 **Input:** `materialsListInput` from `packages/shared/src/materials.ts`
 
-| field      | type    | default | constraint               |
-| ---------- | ------- | ------- | ------------------------ |
-| `page`     | integer | `1`     | ≥ 1                      |
-| `pageSize` | integer | `25`    | one of `10, 25, 50, 100` |
+| field          | type                                                                                  | default            | constraint               |
+| -------------- | ------------------------------------------------------------------------------------- | ------------------ | ------------------------ |
+| `page`         | integer                                                                               | `1`                | ≥ 1                      |
+| `pageSize`     | integer                                                                               | `25`               | one of `10, 25, 50, 100` |
+| `search`       | string                                                                                | —                  | max 100 chars, optional  |
+| `materialType` | `'Spare Part' \| 'Consumable' \| 'Raw Material' \| 'Tool'`                            | —                  | optional                 |
+| `status`       | `'Active' \| 'Obsolete' \| 'Pending Review'`                                          | —                  | optional                 |
+| `sortBy`       | `'materialNumber' \| 'description' \| 'unitPrice' \| 'quantityOnHand' \| 'updatedAt'` | `'materialNumber'` | —                        |
+| `sortDir`      | `'asc' \| 'desc'`                                                                     | `'asc'`            | —                        |
 
 **Returns:**
 
@@ -86,17 +91,26 @@ Omitting `input` entirely applies all field defaults.
 }
 ```
 
-**Errors:** `BAD_REQUEST` if `pageSize` is not one of `[10, 25, 50, 100]` or `page < 1`; `INTERNAL_SERVER_ERROR` (with `requestId`) on database failure
+**Errors:** `BAD_REQUEST` if `pageSize` is not one of `[10, 25, 50, 100]`, `page < 1`, or an enum value is invalid; `INTERNAL_SERVER_ERROR` (with `requestId`) on database failure
 
 **Complexity:**
 
-- Page query: O(offset + pageSize) — walks the `materials_material_number_unique` index for ordering, then PK lookups for the two joins. Dominant cost is the offset scan.
-- Count query: O(n) full scan of `materials` (n = 5,000). Runs in parallel with the page query via `Promise.all`.
+- `search`: `ILIKE '%term%'` on three columns — cannot use a btree index, sequential scan O(n). Fine at 5k rows; a `pg_trgm` GIN index would be the next step at scale.
+- `materialType` / `status` filters: use the btree indexes `materials_material_type_idx` / `materials_status_idx` — O(matching rows).
+- `sortBy`: each sort column has a btree index; sort still requires a scan over the matching rows.
+- Count query: O(matching rows), runs in parallel with the page query.
 
 **Example:**
 
 ```json
-{ "page": 1, "pageSize": 10 }
+{
+  "search": "bearing",
+  "status": "Active",
+  "sortBy": "unitPrice",
+  "sortDir": "desc",
+  "page": 1,
+  "pageSize": 25
+}
 ```
 
 ---
