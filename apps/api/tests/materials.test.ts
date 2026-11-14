@@ -227,6 +227,56 @@ test('materials.list page 2 returns the remaining 2 items', async () => {
   expect(result.items[1].materialNumber).toBe('MAT-000012');
 });
 
+test('search is case-insensitive and matches description, materialNumber and MPN', async () => {
+  const caller = createTestCaller(testDb.db);
+
+  // 'BEARING' (uppercase) matches 4 rows via description (all lowercase in fixtures)
+  const byDesc = await caller.materials.list({ search: 'BEARING', pageSize: 25 });
+  expect(byDesc.total).toBe(4);
+  expect(byDesc.items.every((r) => r.description.toLowerCase().includes('bearing'))).toBe(true);
+
+  // Proves materialNumber field is searched
+  const byNumber = await caller.materials.list({ search: 'MAT-000001', pageSize: 25 });
+  expect(byNumber.total).toBe(1);
+  expect(byNumber.items[0].materialNumber).toBe('MAT-000001');
+
+  // Proves MPN field is searched
+  const byMpn = await caller.materials.list({ search: '6205', pageSize: 25 });
+  expect(byMpn.total).toBe(1);
+  expect(byMpn.items[0].manufacturerPartNumber).toBe('6205-2RS1');
+});
+
+test('filters and search combine correctly', async () => {
+  const caller = createTestCaller(testDb.db);
+  // Active consumable grease rows: MAT-000009 and MAT-000002
+  const result = await caller.materials.list({
+    search: 'grease',
+    materialType: 'Consumable',
+    status: 'Active',
+    pageSize: 25,
+  });
+  expect(result.total).toBe(2);
+  expect(result.items.every((r) => r.description.toLowerCase().includes('grease'))).toBe(true);
+  expect(result.items.every((r) => r.materialType === 'Consumable')).toBe(true);
+  expect(result.items.every((r) => r.status === 'Active')).toBe(true);
+});
+
+test('sortBy unitPrice desc uses id as tie-breaker', async () => {
+  const caller = createTestCaller(testDb.db);
+  const result = await caller.materials.list({
+    sortBy: 'unitPrice',
+    sortDir: 'desc',
+    pageSize: 25,
+  });
+
+  expect(result.items[0].materialNumber).toBe('MAT-000010'); // 210.00, highest
+  // 32.80 appears on MAT-000012 (id=1) and MAT-000003 (id=5); lower id comes first
+  const tied = result.items.filter((r) => r.unitPrice === '32.80');
+  expect(tied).toHaveLength(2);
+  expect(tied[0].materialNumber).toBe('MAT-000012'); // id=1
+  expect(tied[1].materialNumber).toBe('MAT-000003'); // id=5
+});
+
 test('materials.list rejects invalid pageSize with BAD_REQUEST', async () => {
   const caller = createTestCaller(testDb.db);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- deliberately testing invalid input
