@@ -206,3 +206,31 @@ no changes needed at this time
 - **`eslint-disable-next-line react-hooks/exhaustive-deps`** in `Toolbar`'s debounce effect. `setParams` is intentionally omitted from deps — including it would re-run the effect on every render (since `setParams` is a new closure each render), defeating the 300 ms debounce.
 
 **Developer notes:**
+
+---
+
+## 2026-11-14 — Prompt 08 (README, study guide, final review)
+
+**Asked:** Write the README and study guide; do a final consistency pass on all docs so they match the code.
+
+**Files changed:**
+
+- `README.md` — full rewrite: summary, prereqs (port 5433), setup code block, commands table, architecture + request path, decisions & trade-offs, what's next, AI tool reflection with `<!-- TODO(me) -->` marker
+- `docs/STUDY_GUIDE.md` — new file: request path file by file, likely interview questions with paragraph answers, live-change rehearsal (add "in stock only" filter)
+- `docs/API.md` — fixed `updatedAt: Date` → `updatedAt: string` (ISO 8601; no superjson transformer)
+- `AGENTS.md` — added `STUDY_GUIDE.md` to the docs tree
+- `docs/AI_LOG.md` — this entry
+
+**Decisions:**
+
+- **Port 5433 in prereqs, not 5432.** The prompt spec said "free ports 5432, 3001 and 5173" but `docker-compose.yml` maps host port 5433 to container 5432. The README uses 5433 to match the code.
+- **5 manufacturers in README, not 26.** Running `npm run db:setup` confirmed "Seeded: 5 plants, 5 manufacturers, 5000 materials". The AI_LOG for Prompt 04 incorrectly stated 26 manufacturers; the README describes the actual seed output.
+- **`updatedAt: string` in API.md.** The Prompt 07 typecheck error (which said the inferred type was `string`, not `Date`) confirmed the wire type. API.md previously showed `Date`; fixed.
+
+**Code issues found (not fixed):**
+
+- `docs/AI_LOG.md` Prompt 04 entry says "26 manufacturers" — actual seed produces 5.
+- `MaterialsPage.tsx:23` uses `as any` with `eslint-disable` — intentional, documented in AI_LOG.
+- `Toolbar.tsx:29` uses `eslint-disable-next-line react-hooks/exhaustive-deps` — intentional, documented in AI_LOG.
+
+**Developer notes:**
