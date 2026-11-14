@@ -94,3 +94,29 @@ no changes needed at this time
 - `@types/node@^26.6.6` added and `"node"` added to tsconfig `types` array — needed for `process.loadEnvFile()` in `drizzle.config.ts`. TypeScript 6 + `moduleResolution: "node16"` does not auto-include ambient `@types/*` globals.
 
 **Developer notes:**
+
+---
+
+## 2026-11-13 — Prompt 04 (Seed data)
+
+**Asked:** Add a DB client factory, a seed script producing 5,000 deterministic material records (plus 5 plants and 26 manufacturers), and a root `db:setup` script (migrate + seed).
+
+**Files changed:**
+
+- `apps/api/src/db/client.ts` — `createDb(connectionString)` factory returning `{ db, pool }`
+- `apps/api/src/db/seed-data.ts` — 11 categories with manufacturers, description parts, MPNs, UoMs, price ranges
+- `apps/api/src/db/seed.ts` — mulberry32 PRNG, all helpers, transaction with TRUNCATE + inserts, batch loop
+- `apps/api/package.json` — added `db:seed` script
+- `root package.json` — added `db:setup` script
+- `AGENTS.md` — added `db:setup` command and seed-determinism rule
+
+**Decisions:**
+
+- **No faker**: faker knows nothing about bearings or MPN formats, its output for a given seed changes between versions (breaking determinism), and we would hand-write the domain lists regardless. A 6-line mulberry32 PRNG plus 4 helpers achieves the same result with zero new dependencies.
+- **mulberry32 seed `0xdeadbeef`**: arbitrary constant — the value doesn't matter, only that it never changes. Documented in AGENTS.md.
+- **Anchor date `2026-11-01T00:00:00Z`**: all `updated_at` offsets are computed from this constant so the timestamps are identical on every run regardless of when the seed runs.
+- **Batch size 500**: 500 rows × 11 columns = 5,500 bind parameters per INSERT, well inside Postgres's 65,535-parameter limit. Each batch is also a separate round trip, keeping peak memory on the wire protocol low.
+- **`TRUNCATE … RESTART IDENTITY CASCADE`** rather than DELETE: truncation is unlogged and much faster on large tables; `RESTART IDENTITY` resets the serial sequences so IDs are identical on every run; `CASCADE` handles the FK dependency order automatically.
+- **`createDb` as a factory, not a singleton**: the seed uses `DATABASE_URL`; tests (prompt 05) will use `TEST_DATABASE_URL`. A singleton would force one or the other.
+
+**Developer notes:**

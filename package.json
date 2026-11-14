@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "db:setup": "npm run db:migrate -w apps/api && npm run db:seed -w apps/api"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
