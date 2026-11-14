@@ -120,3 +120,43 @@ no changes needed at this time
 - **`createDb` as a factory, not a singleton**: the seed uses `DATABASE_URL`; tests (prompt 05) will use `TEST_DATABASE_URL`. A singleton would force one or the other.
 
 **Developer notes:**
+
+---
+
+## 2026-11-14 — Prompt 05 (API server, tRPC, materials.list)
+
+**Asked:** Stand up Express + tRPC v11, request ID middleware, CORS, `/health`, `materials.list` with pagination and joins, Jest test setup against `materials_test`, three tests (happy path, page 2, bad input), and API.md.
+
+**Files changed:**
+
+- `packages/shared/src/materials.ts` — `PAGE_SIZES`, `materialsListInput` Zod schema, `MaterialsListInput` type
+- `packages/shared/src/index.ts` — added `export * from './materials'`
+- `packages/shared/package.json` — added `zod` dependency
+- `apps/api/src/db/client.ts` — added `DbClient` type alias for the drizzle instance
+- `apps/api/src/trpc.ts` — `initTRPC` with `Context`, `errorFormatter`, exports
+- `apps/api/src/routers/materials.ts` — `materials.list` with joins, pagination, parallel count
+- `apps/api/src/routers/index.ts` — `appRouter`, `AppRouter` type export
+- `apps/api/src/server.ts` — Express 5 server replacing placeholder
+- `apps/api/tests/globalSetup.js` — plain CJS; migrates `materials_test` once
+- `apps/api/tests/setup.ts` — loads `.env` per worker, checks `TEST_DATABASE_URL`
+- `apps/api/tests/helpers.ts` — `createTestDb`, `truncateAll`, `createTestCaller`
+- `apps/api/tests/fixtures.ts` — 2 plants, 2 manufacturers, 12 materials out of sort order
+- `apps/api/tests/materials.test.ts` — 3 tests; deleted old smoke test
+- `apps/api/jest.config.js` — added `globalSetup`, `setupFiles`, `maxWorkers: 1`
+- `apps/api/package.json` — added `express`, `cors`, `@trpc/server`; updated `dev` script
+- `eslint.config.js` — added `globals` import; added `globals.node` and `no-require-imports: off` to CJS `.js` rule
+- `root package.json` — added `globals` devDependency
+- `.env.example` — added `WEB_ORIGIN`
+- `docs/API.md` — HTTP shape intro, error shape, `materials.list` section
+- `AGENTS.md` — added testing rules and DB-running note
+
+**Decisions:**
+
+- **One procedure only (`materials.list`):** no plant/manufacturer lookup procedures. Filters (Type, Status) use the shared `MATERIAL_TYPES` / `MATERIAL_STATUSES` constants. Added in prompt 06.
+- **`z.preprocess(v => v ?? {}, schema)`** for the input schema instead of `.default({})`: In Zod v4, `.default({})` on an object schema returns the literal `{}` for undefined input without applying field-level defaults, so pagination fell back to `limit(undefined)` and returned all 5,000 rows. `z.preprocess` normalises `undefined → {}` before validation, letting field defaults kick in correctly.
+- **CORS callback form** (`origin: (requestOrigin, cb) => cb(null, requestOrigin === WEB_ORIGIN)`): the string form always sends `Access-Control-Allow-Origin` regardless of the request's `Origin`; the callback form sends no header for non-matching origins.
+- **`globalSetup` as plain CJS JS**: Jest's `globalSetup` runs in the main process outside the ts-jest transform pipeline. Plain JS with `pg` + drizzle directly avoids needing a TypeScript loader at that stage.
+- **Fixtures inserted out of `materialNumber` order**: proves `ORDER BY materialNumber, id` — tests would pass by coincidence if fixtures were in order.
+- **`globals` devDependency** added to root: needed to declare `__dirname`, `process` etc. as valid Node.js globals in the ESLint CJS override for `apps/api/**/*.js`.
+
+**Developer notes:**

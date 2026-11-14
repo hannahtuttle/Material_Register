@@ -11,3 +11,6 @@ export function createDb(connectionString: string) {
 }
 
 export type Db = ReturnType<typeof createDb>;
+// The drizzle query instance extracted from the factory return — used as the
+// context type in tRPC and as the parameter type in test helpers.
+export type DbClient = Db['db'];

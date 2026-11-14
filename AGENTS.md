@@ -34,6 +34,8 @@ material-register/
 | `npm run db:setup`       | Migrate + seed `materials` DB (safe to re-run) |
 
 > **Port note:** host port is `5433` (not `5432`) because a local Postgres was already on 5432. All connection strings use `localhost:5433`.
+>
+> **Tests need the DB running:** `docker compose up -d` before `npm test`.
 
 ---
 
@@ -53,7 +55,7 @@ Every API input is validated with Zod. Schemas that the front end also needs liv
 
 ### 4. Testing
 
-Every tRPC procedure has a happy-path Jest test using `createCaller` against the `materials_test` database.
+Every tRPC procedure has a happy-path Jest test using `createCaller` against the `materials_test` database. Routers get their DB from `ctx.db` — never import a global DB instance. Tests use small fixtures inserted in `beforeEach`; never rely on the seed data. Tests run serially (`maxWorkers: 1`) because all test files share one database.
 
 ### 5. Docs
 
