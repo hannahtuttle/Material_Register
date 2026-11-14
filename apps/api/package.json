@@ -2,6 +2,9 @@
   "name": "@material-register/api",
   "version": "1.0.0",
   "private": true,
+  "exports": {
+    "./router": "./src/routers/index.ts"
+  },
   "dependencies": {
     "@material-register/shared": "*",
     "@trpc/server": "^11.28.2",
