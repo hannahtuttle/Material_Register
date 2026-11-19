@@ -119,7 +119,7 @@ Type and Status are single-select dropdowns (the data model has one value per ro
 ## What I'd do next
 
 - **Search at scale:** add a `pg_trgm` GIN index; measure with `EXPLAIN ANALYZE` before and after; consider a `tsvector` full-text index for multi-language support.
-- **Keyset pagination:** replace `OFFSET` with a `WHERE id > cursor` approach so deep pages stay O(1).
+- **Keyset pagination:** replace `OFFSET` with a `(sortColumn, id)` cursor so deep pages cost the same as the first, at the cost of trading page numbers for next/previous navigation.
 - **More filters:** manufacturer (needs a lookup endpoint or an inline select from the existing data), plant, in-stock only.
 - **Multi-select filters:** `status IN (...)` / `materialType IN (...)` with Mantine's `MultiSelect`.
 - **Detail / edit view:** a second route (`/materials/:id`) with an edit form; tRPC `materials.get` and `materials.update` procedures.
